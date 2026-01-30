@@ -13,10 +13,11 @@ def converter_tamanho(tamanho_str):
     # Dicionário de unidades para conversão
     unidades = {'B': 1, 'KB': 1024, 'MB': 1024**2, 'GB': 1024**3, 'TB': 1024**4}
     
-    # Separa números das letras ("4GB" -> "4" e "GB")
+    # Separo números das letras ("4GB" -> "4" e "GB")
     numero_str = ""
     unidade_str = ""
     
+
     for char in tamanho_str:
         if char.isdigit() or char == '.':
             numero_str += char
@@ -28,7 +29,7 @@ def converter_tamanho(tamanho_str):
     # Tenta converter o número
     try:
         if not numero_str:
-            # Caso o usuário digite algo sem número, ignora ou retorna 0
+            # Caso o usuário digite algo sem número retorna 0
             return 0
         valor = float(numero_str)
     except ValueError:
@@ -42,7 +43,7 @@ def converter_tamanho(tamanho_str):
     return int(valor)
 
 def formatar_bytes(tamanho):
-    # Formata os bytes em uma string legível
+    # Formata os bytes em uma string pra ler
     for unidade in ['B', 'KB', 'MB', 'GB', 'TB']:
         if tamanho < 1024.0:
             return f"{tamanho:.2f} {unidade}"
@@ -60,7 +61,7 @@ def simular_paginacao():
         mf_in = input("1. Tamanho da Memória Física (Padrão 2GB): ").strip() or "2GB"
         ml_in = input("2. Tamanho da Memória Lógica (Padrão 4GB): ").strip() or "4GB"
         tp_in = input("3. Tamanho da Página (Padrão 4KB): ").strip() or "4KB"
-        el_in = input("4. Endereço Lógico a buscar (Padrão 20500): ").strip() or "20500"
+        el_in = input("4. Endereço Lógico para buscar (Padrão 20500): ").strip() or "20500"
         
         # Converte inputs para inteiros
         mem_fisica = converter_tamanho(mf_in)
@@ -78,28 +79,28 @@ def simular_paginacao():
         print(f"\n[ERROCRÍTICO] Entrada inválida: {e}")
         return
 
-    # --- CÁLCULOS LÓGICOS (MMU) ---
+    # --- CÁLCULOS LÓGICOS ---
     # Pagina = Endereço / TamanhoPagina 
     num_pagina = end_logico // tam_pagina
     
     # Deslocamento = Endereço % TamanhoPagina 
     deslocamento = end_logico % tam_pagina
     
-    # Total de páginas e molduras (frames de memória física disponíveis)
-    total_paginas = mem_logica // tam_pagina
+    # Total de páginas e molduras (frames de memória física disponiveis)
+    total_paginas = mem_logica // tam_pagina 
     total_molduras = mem_fisica // tam_pagina
 
     # Simulação da Tabela de Páginas (Mapeamento)
 
     # Se o endereço for 20500 e página 4KB, a página é a 5.
-    # O exemplo diz que a Página 5 está na Moldura 3.
+    # O exemplo fala que a Página 5 ta na Moldura 3.
     if num_pagina == 5 and tam_pagina == 4096:
         moldura = 3
-        nota_exemplo = "(Fixo pelo PDF)"
+        nota_exemplo = "(Fixo do PDF)"
     else:
         # Se não, sorteia uma moldura válida aleatória
         if total_molduras > 0:
-            moldura = random.randint(0, total_molduras - 1)
+            moldura = random.randint(0, total_molduras - 1) # Sorteio uma moldura válida
         # Caso a memória física seja 0 (invalida), define moldura como 0
         else:
             moldura = 0 
@@ -110,8 +111,8 @@ def simular_paginacao():
     end_fisico = (moldura * tam_pagina) + deslocamento
 
     # --- CÁLCULOS DE 2 NÍVEIS ---
-    # Simulação para arquitetura de 32 bits (10 bits PT1, 10 bits PT2)
-    # A tabela de 1024 entradas
+    # Segundo nivel é quando a tabela de páginas é dividida em duas partes e cada parte é usada para indexar a proxima tabela.
+    # tabela de 1024 entradas
     entradas_nivel = 1024 
     indice_pt1 = num_pagina // entradas_nivel
     indice_pt2 = num_pagina % entradas_nivel
@@ -119,13 +120,15 @@ def simular_paginacao():
 
     # --- CÁLCULO DE TEMPO (TLB) ---
     # Hit: TLB + Memória | Miss: TLB + 2*Memória
-    tempo_tlb = 20   # ns
-    tempo_mem = 100  # ns
+    # fixei os tempos em nanossegundos
+    tempo_tlb = 20  
+    tempo_mem = 100  
     
-    # Sorteia se houve HIT ou MISS na TLB (cache)
+    # Sorteia se houve HIT ou MISS na cache
     # Coloquei chance de 90% de hit pra simular localidade na TLB
     tlb_hit = random.random() < 0.90
     
+    # Calcula o tempo total do acesso
     if tlb_hit:
         tempo_total = tempo_tlb + tempo_mem
         status_tlb = "TLB HIT (Rápido - Encontrado na Cache)"
@@ -133,7 +136,7 @@ def simular_paginacao():
         tempo_total = tempo_tlb + (2 * tempo_mem)
         status_tlb = "TLB MISS (Lento - Buscou na Tabela em RAM)"
 
-    # --- SAÍDA DE DADOS (VISUALIZAÇÃO) ---
+    # --- Saida grafica dos dados  ---
     print("\n" + "="*60)
     print(f"RESULTADOS DA TRADUÇÃO (MMU)")
     print("="*60)
@@ -154,7 +157,7 @@ def simular_paginacao():
     print(f" > Tempo Total de Acesso: {tempo_total} ns")
     print("="*60)
 
-    # --- VISUALIZAÇÃO GRÁFICA ASCII ---
+    # --- Visualização grafica do mapeamento ---
     print("\n[ VISUALIZAÇÃO GRÁFICA DO MAPEAMENTO - 1 NÍVEL ]")
     print(f"      CPU (Gera Endereço Lógico)")
     print(f"       |")
